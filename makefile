@@ -1,14 +1,12 @@
 build:
-	@docker build -t myjenkins .
-create-data:
-	@docker volume create jenkins-log
-	@docker volume create jenkins-data
+	@docker-compose -p jenkins build
 run:
-	@docker run -p 8080:8080 -p 50000:50000 --name=jenkins-master --mount source=jenkins-log,target=/var/log/jenkins --mount source=jenkins-data,target=/var/jenkins_home -d myjenkins
+	@docker-compose -p jenkins up -d nginx master proxy
 stop:
-	-docker stop jenkins-master
-clean:	stop
-	-docker rm jenkins-master
-clean-data:  clean
-	-docker volume rm jenkins-log
-	-docker volume rm jenkins-data
+	@docker-compose -p jenkins down
+clean-data: 
+	@docker-compose -p jenkins down -v
+clean-images:
+	@docker rmi `docker images -q -f "dangling=true"`
+jenkins-log:
+	@docker-compose -p jenkins exec master tail -f /var/log/jenkins/jenkins.log
